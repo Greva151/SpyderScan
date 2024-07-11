@@ -224,9 +224,9 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
     ip++;
 
-    printf("IP number %u\n", ip);           //debug
+    //printf("IP number %u\n", ip);           //debug
 
-    for(int i = 0; i <= TEAM_NUMBER; i++){
+    for(int i = 0; i < TEAM_NUMBER; i++){
 
         struct in_addr ip_addr;
         ip_addr.s_addr = ip;
@@ -234,7 +234,9 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
         
         decimalToDotted(ip_addr.s_addr, IPstr); 
 
-        for(int port = 22; port < 0xffff; port++){ 
+        printf("im scanning this IP = %s\n", IPstr);
+
+        for(int port = 22; port < 0xffff; port++){  
 
             //printf("PORT = %d\n", port);            //debug
 

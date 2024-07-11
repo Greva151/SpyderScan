@@ -1,4 +1,4 @@
-// ./spyderscan -n 45 -i 10.0.0.0
+// ./spyderscan -n 45 -i 127.0.0.0
 // number of teams: -n [int]
 // network: -i [network_name/24]
 
@@ -12,7 +12,7 @@
 #include "../lib/spyderscan.h"
 
 
-unsigned char TEAM_NUMBER;
+char TEAM_NUMBER;
 char NETWORK_NAME[16];  
 
 int main(int argc, char *argv[]) {
@@ -27,7 +27,12 @@ int main(int argc, char *argv[]) {
 
     for(int i = 1; i < argc; i++){
         if(strncmp("-n", argv[i], 2) == 0){
-            if((TEAM_NUMBER = atoi(argv[++i])) != 0){}
+            if((TEAM_NUMBER = atoi(argv[++i])) != 0){
+                if(TEAM_NUMBER < 1){
+                    fprintf(stderr, "Error: the number of teams can't be negative!\n");
+                    return 1;
+                }
+            }
             else{
                 fprintf(stderr, "Error: the number of teams is invalid!\n");
                 return 1;
@@ -40,7 +45,7 @@ int main(int argc, char *argv[]) {
                 strncpy(NETWORK_NAME, argv[i], len);
                 NETWORK_NAME[len] = '\0';    
 
-                printf("IP letto da argv %s\n", NETWORK_NAME);        //debug
+                //printf("IP letto da argv %s\n", NETWORK_NAME);        //debug
 
                 if(!validate_ip(argv[i])){
                     fprintf(stderr, "Error: the name of network is invalid!\n");
