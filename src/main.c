@@ -1,3 +1,11 @@
+// ./spyderscan -n 45 -i 10.0.0.0
+// number of teams: -n [int]
+// network: -i [network_name/24]
+
+// gcc -I./lib src/spyderscan.c src/main.c -o spyderscan
+// gcc -I./lib -Wall -Wextra -pedantic -O2 -g src/spyderscan.c src/main.c -o spyderscan
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,9 +16,6 @@
 #include <errno.h>  
 #include "../lib/spyderscan.h"
 
-// ./spyderscan -n 45 -i 10.0.0.0
-// number of teams: -n [int]
-// network: -i [network_name/24]
 
 unsigned char TEAM_NUMBER;
 char NETWORK_NAME[16];  
@@ -35,13 +40,15 @@ int main(int argc, char *argv[]) {
         }
         else if (strncmp("-i", argv[i], 2) == 0){
             unsigned char len; 
-            if((len = strlen(argv[++i])) < 16){
-                if(validate_ip(argv[i]))
-                    strncpy(NETWORK_NAME, argv[i], len); 
-                else{
+            if((len = strlen(argv[++i])) < 15){     
+                                 
+                strncpy(NETWORK_NAME, argv[i], len);
+                NETWORK_NAME[len] = '\0';                                      
+
+                if(!validate_ip(argv[i])){
                     fprintf(stderr, "Error: the name of network is invalid!\n");
                     return 1;
-                }
+                }           
             }
             else{
                 fprintf(stderr, "Error: the name of network is invalid!\n");

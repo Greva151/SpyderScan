@@ -24,7 +24,7 @@ int validate_number(char *str) {
 
 
 int validate_ip(char *ip) { 
-    int i, num, dots = 0;
+    int num, dots = 0;
     char *ptr;
 
     if (ip == NULL) {
@@ -147,12 +147,12 @@ int is_tcp_port_open(const char *ip, int port) {
 uint32_t stohi(char *ip){
 	char c;
 	c = *ip;
-	unsigned int integer;
+	unsigned int integer = 0;
 	int val;
-	int i, j=0;
+	int i, j = 0;
 
 	for (j = 0; j < 4; j++) {
-		if (!isdigit(c)){  //first char is 0
+		if (!isdigit(c)){ 
 			return (0);
 		}
 
@@ -171,12 +171,12 @@ uint32_t stohi(char *ip){
 		}	
 
 		if (c == '.') {
-			integer = (integer<<8) | val;
+			integer = (integer << 8) | val;
 			c = *++ip;
 		} 
 
 		else if(j == 3 && c == '\0'){
-			integer = (integer<<8) | val;
+			integer = (integer << 8) | val;
 			break;
 		}
 			
@@ -186,11 +186,11 @@ uint32_t stohi(char *ip){
 		return (0);	
 	}
 
-	return (htonl(integer));
+	return htonl(integer);
 }
 
 
-char spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
+void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
     uint32_t ip = stohi(NETWORK_NAME); 
 
     ip++;
@@ -200,9 +200,10 @@ char spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
         struct in_addr ip_addr;
         ip_addr.s_addr = ip;
         char IPstr[16];
-        strncpy(IPstr, inet_ntoa(ip_addr), 16);
+        strncpy(IPstr, inet_ntoa(ip_addr), 15);
 
         for(int port = 1; port < 0xffff; port++){
+            printf("scanning %s IP\n", IPstr); 
             if(is_tcp_port_open(IPstr, port))
                 printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
             if(is_udp_port_open(IPstr, port))
