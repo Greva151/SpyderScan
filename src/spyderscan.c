@@ -226,13 +226,13 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
             printf("IP = %s\nPORT = %d\n\n", IPstr, port);            //debug
 
-            if(is_tcp_port_open(IPstr, port))
-                printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
+            // if(is_tcp_port_open(IPstr, port))
+            //     printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
 
             srand(time(0)); 
 
             if(is_udp_port_open(IPstr, port, (size_t)((rand() % 100) + 2)))
-                printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
+                printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "UDP"); 
         }
 
         ip += 0x00000100;    
