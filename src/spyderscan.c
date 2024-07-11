@@ -11,6 +11,10 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <time.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <oping.h>
 #include "../lib/spyderscan.h"
 
 
@@ -78,56 +82,41 @@ int validate_ip(char *ip) {
 }
 
 
-// int is_udp_port_open(const char *ip, int port, size_t leght_message) {
-//     int sockfd;
-//     struct sockaddr_in server_addr;
-//     char message[leght_message];
+void getLatency(char *ip){
+    pingobj_t *ping;
+    pingobj_iter_t *iter;
 
-//     generate_random_bytes(message, leght_message); 
+    ping = ping_construct();
+    if (ping == NULL) {
+        fprintf(stderr, "Errore nella creazione dell'oggetto ping\n");
+        return 1;
+    }
 
-//     char buffer[1024];
-//     socklen_t addr_len;
+    if (ping_host_add(ping, ip) != 0) {
+        fprintf(stderr, "Errore nell'aggiunta dell'host\n");
+        ping_destroy(ping);
+        return 1;
+    }
 
-//     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-//     if (sockfd < 0) {
-//         perror("Errore nella creazione del socket UDP");
-//         return 0;
-//     }
+    if (ping_send(ping) < 0) {
+        fprintf(stderr, "Errore nell'invio del pacchetto ping\n");
+        ping_destroy(ping);
+        return 1;
+    }
 
-//     memset(&server_addr, 0, sizeof(server_addr));
-//     server_addr.sin_family = AF_INET;
-//     server_addr.sin_port = htons(port);
+    for (iter = ping_iterator_get(ping); iter != NULL; iter = ping_iterator_next(iter)) {
+        char hostname[256];
+        double latency;
+        size_t len = sizeof(hostname);
 
-//     if (inet_pton(AF_INET, ip, &server_addr.sin_addr) <= 0) {
-//         perror("Errore nella conversione dell'indirizzo IP");
-//         close(sockfd);
-//         return 0;
-//     }
+        ping_iterator_get_info(iter, PING_INFO_HOSTNAME, hostname, &len);
+        ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, sizeof(latency));
 
-//     addr_len = sizeof(server_addr);
-//     if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *)&server_addr, addr_len) < 0) {
-//         perror("Errore nell'invio del messaggio UDP");
-//         close(sockfd);
-//         return 0;
-//     }
+        printf("Ping a %s: latenza = %.3f ms\n", hostname, latency);
+    }
 
-//     fd_set read_fds;
-//     struct timeval timeout;
-//     FD_ZERO(&read_fds);
-//     FD_SET(sockfd, &read_fds);
-//     timeout.tv_sec = 1;
-//     timeout.tv_usec = 0;
-
-//     if (select(sockfd + 1, &read_fds, NULL, NULL, &timeout) > 0) {
-//         if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&server_addr, &addr_len) >= 0) {
-//             close(sockfd);
-//             return 1;
-//         }
-//     }
-
-//     close(sockfd);
-//     return 0;
-// }
+    ping_destroy(ping);
+}
 
 
 int is_tcp_port_open(const char *ip, int port, int timeout_ms) {
@@ -232,21 +221,19 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
         ip_addr.s_addr = ip;
         char IPstr[16];
         
-        decimalToDotted(ip_addr.s_addr, IPstr); 
+        decimalToDotted(ip_addr.s_addr, IPstr);
+
+        getLatency(IPstr); 
 
         printf("im scanning this IP = %s\n", IPstr);
 
-        for(int port = 22; port < 0xffff; port++){  
+        for(int port = 22; port < 0xffff; port++){      
 
             //printf("PORT = %d\n", port);            //debug
 
             if(is_tcp_port_open(IPstr, port, 150))
                 printf("IP = %s, PORT = %d, PROTO = %s\n", IPstr, port, "TCP"); 
 
-            // srand(time(0)); 
-
-            // if(is_udp_port_open(IPstr, port, (size_t)((rand() % 100) + 2)))
-            //     printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "UDP"); 
         }
 
         ip += 0x00000100;    
