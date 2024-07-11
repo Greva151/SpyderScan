@@ -78,61 +78,63 @@ int validate_ip(char *ip) {
 }
 
 
-int is_udp_port_open(const char *ip, int port, size_t leght_message) {
+// int is_udp_port_open(const char *ip, int port, size_t leght_message) {
+//     int sockfd;
+//     struct sockaddr_in server_addr;
+//     char message[leght_message];
+
+//     generate_random_bytes(message, leght_message); 
+
+//     char buffer[1024];
+//     socklen_t addr_len;
+
+//     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+//     if (sockfd < 0) {
+//         perror("Errore nella creazione del socket UDP");
+//         return 0;
+//     }
+
+//     memset(&server_addr, 0, sizeof(server_addr));
+//     server_addr.sin_family = AF_INET;
+//     server_addr.sin_port = htons(port);
+
+//     if (inet_pton(AF_INET, ip, &server_addr.sin_addr) <= 0) {
+//         perror("Errore nella conversione dell'indirizzo IP");
+//         close(sockfd);
+//         return 0;
+//     }
+
+//     addr_len = sizeof(server_addr);
+//     if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *)&server_addr, addr_len) < 0) {
+//         perror("Errore nell'invio del messaggio UDP");
+//         close(sockfd);
+//         return 0;
+//     }
+
+//     fd_set read_fds;
+//     struct timeval timeout;
+//     FD_ZERO(&read_fds);
+//     FD_SET(sockfd, &read_fds);
+//     timeout.tv_sec = 1;
+//     timeout.tv_usec = 0;
+
+//     if (select(sockfd + 1, &read_fds, NULL, NULL, &timeout) > 0) {
+//         if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&server_addr, &addr_len) >= 0) {
+//             close(sockfd);
+//             return 1;
+//         }
+//     }
+
+//     close(sockfd);
+//     return 0;
+// }
+
+
+int is_tcp_port_open(const char *ip, int port, int timeout_ms) {
     int sockfd;
     struct sockaddr_in server_addr;
-    char message[leght_message];
-
-    generate_random_bytes(message, leght_message); 
-
-    char buffer[1024];
-    socklen_t addr_len;
-
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0) {
-        perror("Errore nella creazione del socket UDP");
-        return 0;
-    }
-
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-
-    if (inet_pton(AF_INET, ip, &server_addr.sin_addr) <= 0) {
-        perror("Errore nella conversione dell'indirizzo IP");
-        close(sockfd);
-        return 0;
-    }
-
-    addr_len = sizeof(server_addr);
-    if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *)&server_addr, addr_len) < 0) {
-        perror("Errore nell'invio del messaggio UDP");
-        close(sockfd);
-        return 0;
-    }
-
-    fd_set read_fds;
-    struct timeval timeout;
-    FD_ZERO(&read_fds);
-    FD_SET(sockfd, &read_fds);
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-
-    if (select(sockfd + 1, &read_fds, NULL, NULL, &timeout) > 0) {
-        if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&server_addr, &addr_len) >= 0) {
-            close(sockfd);
-            return 1;
-        }
-    }
-
-    close(sockfd);
-    return 0;
-}
-
-
-int is_tcp_port_open(const char *ip, int port) {
-    int sockfd;
-    struct sockaddr_in server_addr;
+    fd_set fdset;
+    struct timeval tv;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
@@ -140,6 +142,9 @@ int is_tcp_port_open(const char *ip, int port) {
         return 0;
     }
 
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
@@ -150,19 +155,26 @@ int is_tcp_port_open(const char *ip, int port) {
         return 0;
     }
 
-    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        if (errno == ECONNREFUSED || errno == ETIMEDOUT) {
+    connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+
+    FD_ZERO(&fdset);
+    FD_SET(sockfd, &fdset);
+    tv.tv_sec = timeout_ms / 1000;             
+    tv.tv_usec = (timeout_ms % 1000) * 1000;  
+
+    if (select(sockfd + 1, NULL, &fdset, NULL, &tv) == 1) {
+        int so_error;
+        socklen_t len = sizeof so_error;
+
+        getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
+        if (so_error == 0) {
             close(sockfd);
-            return 0;
-        } else {
-            perror("Errore nella connessione TCP");
-            close(sockfd);
-            return 0;
+            return 1; 
         }
     }
 
     close(sockfd);
-    return 1;
+    return 0;
 }
 
 
@@ -222,17 +234,17 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
         
         decimalToDotted(ip_addr.s_addr, IPstr); 
 
-        for(int port = 1; port < 0xffff; port++){ 
+        for(int port = 22; port < 0xffff; port++){ 
 
-            printf("IP = %s\nPORT = %d\n\n", IPstr, port);            //debug
+            //printf("PORT = %d\n", port);            //debug
 
-            // if(is_tcp_port_open(IPstr, port))
-            //     printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
+            if(is_tcp_port_open(IPstr, port, 150))
+                printf("IP = %s, PORT = %d, PROTO = %s\n", IPstr, port, "TCP"); 
 
-            srand(time(0)); 
+            // srand(time(0)); 
 
-            if(is_udp_port_open(IPstr, port, (size_t)((rand() % 100) + 2)))
-                printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "UDP"); 
+            // if(is_udp_port_open(IPstr, port, (size_t)((rand() % 100) + 2)))
+            //     printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "UDP"); 
         }
 
         ip += 0x00000100;    
