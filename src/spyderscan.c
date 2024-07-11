@@ -143,26 +143,55 @@ int is_tcp_port_open(const char *ip, int port) {
     return 1;
 }
 
-uint32_t getDecimalFromIPV4(char ip[]){
 
-    struct in_addr addr;
-    int s;
+uint32_t stohi(char *ip){
+	char c;
+	c = *ip;
+	unsigned int integer;
+	int val;
+	int i, j=0;
 
-    s = inet_pton(AF_INET, ip, &addr);
-    if (s <= 0) {
-        if (s == 0)
-            fprintf(stderr, "Not in presentation format");
-        else
-            perror("inet_pton");
-        exit(EXIT_FAILURE);
-    }
-    
-    return ntohl(addr.s_addr);
+	for (j = 0; j < 4; j++) {
+		if (!isdigit(c)){  //first char is 0
+			return (0);
+		}
+
+		val = 0;
+
+		for (i = 0; i < 3; i++) {
+			if (isdigit(c)) {
+				val = (val * 10) + (c - '0');
+				c = *++ip;
+			} else
+				break;
+		}
+
+		if(val < 0 || val > 255){
+			return (0);	
+		}	
+
+		if (c == '.') {
+			integer = (integer<<8) | val;
+			c = *++ip;
+		} 
+
+		else if(j == 3 && c == '\0'){
+			integer = (integer<<8) | val;
+			break;
+		}
+			
+	}
+
+	if(c != '\0'){
+		return (0);	
+	}
+
+	return (htonl(integer));
 }
 
 
 char spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
-    uint32_t ip = getDecimalFromIPV4(NETWORK_NAME); 
+    uint32_t ip = stohi(NETWORK_NAME); 
 
     ip++;
 
