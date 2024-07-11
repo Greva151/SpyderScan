@@ -6,4 +6,7 @@ a tool for scanning the network during the AD CTF
 ``` gcc -I./lib -Wall -Wextra -pedantic -O2 -g src/spyderscan.c src/main.c -o spyderscan -loping ```
 
 ## library
-``` sudo apt-get install liboping-dev ```   
+``` sudo apt-get install liboping-dev ```
+
+## Run (example)
+``` sudo ./spyderscan -n 1 -i 192.168.1.0 ```

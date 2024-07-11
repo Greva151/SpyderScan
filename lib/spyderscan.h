@@ -10,6 +10,6 @@ u_int32_t stringToIntIP(char input[]);
 void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]); 
 void generate_random_bytes(char *buffer, size_t length); 
 void decimalToDotted(u_int32_t decimalIP, char dst[]);
-int getLatency(char *ip);
+int getLatency(const char *ip);
  
 #endif // SPYDER_SCAN_H

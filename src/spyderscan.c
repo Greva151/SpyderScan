@@ -82,26 +82,28 @@ int validate_ip(char *ip) {
 }
 
 
-int getLatency(char *ip){
+int getLatency(const char *ip) {
     pingobj_t *ping;
     pingobj_iter_t *iter;
+
+    printf("sto cercando di pingare %s\n", ip); 
 
     ping = ping_construct();
     if (ping == NULL) {
         fprintf(stderr, "Errore nella creazione dell'oggetto ping\n");
-        return 1;
+        return -1;
     }
 
     if (ping_host_add(ping, ip) != 0) {
         fprintf(stderr, "Errore nell'aggiunta dell'host\n");
         ping_destroy(ping);
-        return 1;
+        return -1;
     }
 
     if (ping_send(ping) < 0) {
         fprintf(stderr, "Errore nell'invio del pacchetto ping\n");
         ping_destroy(ping);
-        return 1;
+        return -1;
     }
 
     int count = 0; 
@@ -111,7 +113,7 @@ int getLatency(char *ip){
         char hostname[256];
         double latency;
         size_t len = sizeof(hostname);
-        size_t lenLatency = sizeof(lenLatency); 
+        size_t lenLatency = sizeof(latency);
 
         ping_iterator_get_info(iter, PING_INFO_HOSTNAME, hostname, &len);
         ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, &lenLatency);
@@ -123,6 +125,11 @@ int getLatency(char *ip){
     }
 
     ping_destroy(ping);
+
+    if (count == 0) {
+        fprintf(stderr, "Nessuna risposta dal server\n");
+        return -1;
+    }   
 
     return (int)(sum / count); 
 }
@@ -222,8 +229,6 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
     ip++;
 
-    //printf("IP number %u\n", ip);           //debug
-
     for(int i = 0; i < TEAM_NUMBER; i++){
 
         struct in_addr ip_addr;
@@ -234,6 +239,8 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
         int value = getLatency(IPstr); 
 
+        printf("valore della latenza = %d\n", value); 
+
         if(value > 0){}
 
         printf("im scanning this IP = %s\n", IPstr);
@@ -242,7 +249,7 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
             //printf("PORT = %d\n", port);            //debug
 
-            if(is_tcp_port_open(IPstr, port, 150))
+            if(is_tcp_port_open(IPstr, port, value + 10))
                 printf("IP = %s, PORT = %d, PROTO = %s\n", IPstr, port, "TCP"); 
 
         }
