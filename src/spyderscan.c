@@ -190,7 +190,20 @@ u_int32_t stringToIntIP(char input[]){
 
     somIP += (((u_int32_t)ip[0]) << 24) + (((u_int32_t)ip[1]) << 16) + (((u_int32_t)ip[2]) << 8) + ip[3]; 
 
-    return somIP - 1; 
+    return somIP; 
+}
+
+
+void decimalToDotted(u_int32_t decimalIP, char dst[]){    
+
+    unsigned char bytes[4];
+
+    bytes[0] = decimalIP & 0xFF;
+    bytes[1] = (decimalIP >> 8) & 0xFF;
+    bytes[2] = (decimalIP >> 16) & 0xFF;
+    bytes[3] = (decimalIP >> 24) & 0xFF; 
+
+    snprintf(dst, 16, "%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);
 }
 
 
@@ -199,17 +212,20 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
     ip++;
 
-    printf("IP number %u\n", ip);     //debug
+    printf("IP number %u\n", ip);           //debug
 
     for(int i = 0; i <= TEAM_NUMBER; i++){
 
         struct in_addr ip_addr;
         ip_addr.s_addr = ip;
         char IPstr[16];
-        strncpy(IPstr, inet_ntoa(ip_addr), 15);
+        
+        decimalToDotted(ip_addr.s_addr, IPstr); 
 
-        for(int port = 1; port < 0xffff; port++){
-            printf("scanning %s IP\n", IPstr); 
+        for(int port = 1; port < 0xffff; port++){ 
+
+            printf("IP = %s\nPORT = %d\n\n", IPstr, port);            //debug
+
             if(is_tcp_port_open(IPstr, port))
                 printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
 
