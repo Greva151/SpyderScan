@@ -42,8 +42,10 @@ int main(int argc, char *argv[]) {
             unsigned char len; 
             if((len = strlen(argv[++i])) < 16){     
 
-                strncpy(NETWORK_NAME, argv[i], len - 1);
-                NETWORK_NAME[len] = '\0';                                      
+                strncpy(NETWORK_NAME, argv[i], len);
+                NETWORK_NAME[len] = '\0';    
+
+                printf("IP letto da argv %s\n", NETWORK_NAME);        //debug
 
                 if(!validate_ip(argv[i])){
                     fprintf(stderr, "Error: the name of network is invalid!\n");

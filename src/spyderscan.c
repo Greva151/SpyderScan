@@ -166,56 +166,40 @@ int is_tcp_port_open(const char *ip, int port) {
 }
 
 
-uint32_t stohi(char *ip){
-	char c;
-	c = *ip;
-	unsigned int integer = 0;
-	int val;
-	int i, j = 0;
+u_int32_t stringToIntIP(char input[]){
+    unsigned short ip[4] = {0};
+    u_int32_t somIP = 0;   
+    int q = 0;                 
 
-	for (j = 0; j < 4; j++) {
-		if (!isdigit(c)){ 
-			return (0);
-		}
+    for(int i = 0; i < 16; i++){
+        if(input[i] == '\n' || input[i] == '\0'){
+            ip[q] /= 10;
+            break; 
+        }
+        else{
+            if(input[i] == '.'){
+                ip[q] /= 10;  
+                q++; 
+            }
+            else{
+                ip[q] += input[i] & 0x0f; 
+                ip[q] *= 10; 
+            }
+        }
+    }
 
-		val = 0;
+    somIP += (((u_int32_t)ip[0]) << 24) + (((u_int32_t)ip[1]) << 16) + (((u_int32_t)ip[2]) << 8) + ip[3]; 
 
-		for (i = 0; i < 3; i++) {
-			if (isdigit(c)) {
-				val = (val * 10) + (c - '0');
-				c = *++ip;
-			} else
-				break;
-		}
-
-		if(val < 0 || val > 255){
-			return (0);	
-		}	
-
-		if (c == '.') {
-			integer = (integer << 8) | val;
-			c = *++ip;
-		} 
-
-		else if(j == 3 && c == '\0'){
-			integer = (integer << 8) | val;
-			break;
-		}
-			
-	}
-
-	if(c != '\0'){
-		return (0);	
-	}
-
-	return htonl(integer);
+    return somIP - 1; 
 }
 
 
 void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
-    uint32_t ip = stohi(NETWORK_NAME); 
+    uint32_t ip = stringToIntIP(NETWORK_NAME); 
 
     ip++;
+
+    printf("IP number %u\n", ip);     //debug
 
     for(int i = 0; i <= TEAM_NUMBER; i++){
 
