@@ -9,7 +9,26 @@
 #include <sys/select.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <time.h>
 #include "../lib/spyderscan.h"
+
+
+void generate_random_bytes(char *buffer, size_t length) {
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    if ((size_t)read(fd, buffer, length) != length) {
+        perror("read");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
+}
 
 
 int validate_number(char *str) {
@@ -59,10 +78,13 @@ int validate_ip(char *ip) {
 }
 
 
-int is_udp_port_open(const char *ip, int port) {
+int is_udp_port_open(const char *ip, int port, size_t leght_message) {
     int sockfd;
     struct sockaddr_in server_addr;
-    char message[] = "Ping";
+    char message[leght_message];
+
+    generate_random_bytes(message, leght_message); 
+
     char buffer[1024];
     socklen_t addr_len;
 
@@ -206,7 +228,10 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
             printf("scanning %s IP\n", IPstr); 
             if(is_tcp_port_open(IPstr, port))
                 printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
-            if(is_udp_port_open(IPstr, port))
+
+            srand(time(0)); 
+
+            if(is_udp_port_open(IPstr, port, (size_t)((rand() % 100) + 2)))
                 printf("IP = %s, PORT = %d, PROTO = %s", IPstr, port, "TCP"); 
         }
 

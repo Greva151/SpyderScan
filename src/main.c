@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     }
 
     TEAM_NUMBER = 16; 
-    strncpy(NETWORK_NAME, "10.60.0.0", 16); 
+    strncpy(NETWORK_NAME, "10.60.0.0", 15); 
 
     for(int i = 1; i < argc; i++){
         if(strncmp("-n", argv[i], 2) == 0){
@@ -37,12 +37,12 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Error: the number of teams is invalid!\n");
                 return 1;
             }
-        }
+        }   
         else if (strncmp("-i", argv[i], 2) == 0){
             unsigned char len; 
-            if((len = strlen(argv[++i])) < 15){     
-                                 
-                strncpy(NETWORK_NAME, argv[i], len);
+            if((len = strlen(argv[++i])) < 16){     
+
+                strncpy(NETWORK_NAME, argv[i], len - 1);
                 NETWORK_NAME[len] = '\0';                                      
 
                 if(!validate_ip(argv[i])){
