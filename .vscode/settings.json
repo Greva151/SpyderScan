@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "errno.h": "c",
+        "select.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}
