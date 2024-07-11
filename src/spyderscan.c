@@ -82,7 +82,7 @@ int validate_ip(char *ip) {
 }
 
 
-void getLatency(char *ip){
+int getLatency(char *ip){
     pingobj_t *ping;
     pingobj_iter_t *iter;
 
@@ -104,18 +104,27 @@ void getLatency(char *ip){
         return 1;
     }
 
+    int count = 0; 
+    double sum = 0; 
+
     for (iter = ping_iterator_get(ping); iter != NULL; iter = ping_iterator_next(iter)) {
         char hostname[256];
         double latency;
         size_t len = sizeof(hostname);
+        size_t lenLatency = sizeof(lenLatency); 
 
         ping_iterator_get_info(iter, PING_INFO_HOSTNAME, hostname, &len);
-        ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, sizeof(latency));
+        ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, &lenLatency);
 
         printf("Ping a %s: latenza = %.3f ms\n", hostname, latency);
+        
+        sum += latency;
+        count++; 
     }
 
     ping_destroy(ping);
+
+    return (int)(sum / count); 
 }
 
 
@@ -223,7 +232,9 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
         
         decimalToDotted(ip_addr.s_addr, IPstr);
 
-        getLatency(IPstr); 
+        int value = getLatency(IPstr); 
+
+        if(value > 0){}
 
         printf("im scanning this IP = %s\n", IPstr);
 
