@@ -18,23 +18,6 @@
 #include "../lib/spyderscan.h"
 
 
-void generate_random_bytes(char *buffer, size_t length) {
-    int fd = open("/dev/urandom", O_RDONLY);
-    if (fd == -1) {
-        perror("open");
-        exit(EXIT_FAILURE);
-    }
-
-    if ((size_t)read(fd, buffer, length) != length) {
-        perror("read");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
-
-    close(fd);
-}
-
-
 int validate_number(char *str) {
     while (*str) {
         if (!isdigit(*str)) { 
@@ -241,13 +224,9 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
         printf("valore della latenza = %d\n", value); 
 
-        if(value > 0){}
-
         printf("im scanning this IP = %s\n", IPstr);
 
         for(int port = 22; port < 0xffff; port++){      
-
-            //printf("PORT = %d\n", port);            //debug
 
             if(is_tcp_port_open(IPstr, port, value + 10))
                 printf("IP = %s, PORT = %d, PROTO = %s\n", IPstr, port, "TCP"); 
