@@ -69,8 +69,6 @@ int getLatency(const char *ip) {
     pingobj_t *ping;
     pingobj_iter_t *iter;
 
-    printf("sto cercando di pingare %s\n", ip); 
-
     ping = ping_construct();
     if (ping == NULL) {
         fprintf(stderr, "Errore nella creazione dell'oggetto ping\n");
@@ -89,12 +87,10 @@ int getLatency(const char *ip) {
         return -1;
     }
 
-    int count = 0; 
-    double sum = 0; 
+    double latency;
 
     for (iter = ping_iterator_get(ping); iter != NULL; iter = ping_iterator_next(iter)) {
         char hostname[256];
-        double latency;
         size_t len = sizeof(hostname);
         size_t lenLatency = sizeof(latency);
 
@@ -102,19 +98,12 @@ int getLatency(const char *ip) {
         ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, &lenLatency);
 
         printf("Ping a %s: latenza = %.3f ms\n", hostname, latency);
-        
-        sum += latency;
-        count++; 
+
     }
 
     ping_destroy(ping);
 
-    if (count == 0) {
-        fprintf(stderr, "Nessuna risposta dal server\n");
-        return -1;
-    }   
-
-    return (int)(sum / count); 
+    return (int)latency; 
 }
 
 
@@ -220,15 +209,24 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
         
         decimalToDotted(ip_addr.s_addr, IPstr);
 
-        int value = getLatency(IPstr); 
+        int latency = 0; 
 
-        printf("valore della latenza = %d\n", value); 
+        for(int q = 0; q < 4; q++){
+            latency += getLatency(IPstr); 
+        }
+
+        latency /= 4; 
+        latency++;
+
+        if(latency < 5) latency = 5;  
+
+        printf("valore della latenza = %dms\n", latency); 
 
         printf("im scanning this IP = %s\n", IPstr);
 
-        for(int port = 22; port < 0xffff; port++){      
+        for(int port = 22; port < 0xC000; port++){      
 
-            if(is_tcp_port_open(IPstr, port, value + 10))
+            if(is_tcp_port_open(IPstr, port, latency))
                 printf("IP = %s, PORT = %d, PROTO = %s\n", IPstr, port, "TCP"); 
 
         }
