@@ -1,20 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <errno.h>
-#include <sys/select.h>
-#include <stdint.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <time.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <oping.h>
 #include "../lib/spyderscan.h"
 
 
@@ -97,7 +80,7 @@ int getLatency(const char *ip) {
         ping_iterator_get_info(iter, PING_INFO_HOSTNAME, hostname, &len);
         ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, &lenLatency);
 
-        printf("Ping a %s: latenza = %.3f ms\n", hostname, latency);
+        printf("Ping %s, latency = %.3f ms\n", hostname, latency);
 
     }
 
@@ -220,14 +203,14 @@ void spyderscan(unsigned char TEAM_NUMBER, char NETWORK_NAME[]){
 
         if(latency < 5) latency = 5;  
 
-        printf("valore della latenza = %dms\n", latency); 
+        printf("latency = %d ms\n", latency); 
 
         printf("im scanning this IP = %s\n", IPstr);
 
         for(int port = 22; port < 0xC000; port++){      
 
             if(is_tcp_port_open(IPstr, port, latency))
-                printf("IP = %s, PORT = %d, PROTO = %s\n", IPstr, port, "TCP"); 
+                printf("IP = %s, PORT = %d\n", IPstr, port); 
 
         }
 

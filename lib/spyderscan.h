@@ -1,7 +1,24 @@
-#include <stdint.h>
-
 #ifndef SPYDER_SCAN_H
 #define SPYDER_SCAN_H
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <sys/select.h>
+#include <stdint.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <time.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <oping.h>
 
 int validate_number(char *str); 
 int validate_ip(char *ip); 
